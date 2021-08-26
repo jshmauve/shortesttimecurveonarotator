@@ -1,0 +1,88 @@
+import random
+import math
+import numpy as np
+from matplotlib import pyplot as plt
+import csv
+
+RESULT = []
+
+for _ in range(500000):
+    print(_)
+    count = 0
+    t = 0
+    w = 3.47
+    U = 0.171
+    m = 1
+    dx = 0.0005
+    x = 0.01
+    a = random.uniform(-5, 5)
+    b = random.uniform(-5, 5)
+    c = random.uniform(-5, 5)
+    d = random.uniform(-5, 5)
+    r = math.sqrt(x ** 2 + (a * x ** 5 + b * x ** 4 + c * x ** 3 + d * x ** 2) ** 2)
+    v = 0.1
+    t = 0
+    fail = 0
+    while r < 0.14:
+        def yy(n):
+            return 5 * a * n ** 4 + 4 * b * n ** 3 + 3 * c * n ** 2 + 2 * d * n
+
+
+        def yyy(n):
+            return 20 * a * n ** 3 + 12 * b * n ** 2 + 6 * c * n + 2 * d
+
+
+        def acc(n, p):
+            return r * (w ** 2) * math.cos(theta) - (U * 2 * p * w) - (U * r * w ** 2 * math.sin(theta)) - U * (
+                        yyy(n) * v ** 2) / ((1 + (yy(n)) ** 2) ** (3 / 2))
+
+        theta = math.atan(yy(x)) - math.atan((a * x ** 5 + b * x ** 4 + c * x ** 3 + d * x ** 2) / x)
+        dt = math.sqrt(1 + yy(x) ** 2) * dx / v
+        r = math.sqrt(x ** 2 + (a * x ** 5 + b * x ** 4 + c * x ** 3 + d * x ** 2) ** 2)
+        N = 2 * v * w + r * (w ** 2) * math.sin(theta) + (yyy(x) * (v ** 2)) / (1 + yy(x) ** 2) ** (3 / 2)
+        k1 = acc(x, v)
+        k2 = acc((x + 1 / 2 * dx), (v + 1 / 2 * dx * k1))
+        k3 = acc((x + 1 / 2 * dx), (v + 1 / 2 * dx * k2))
+        k4 = acc(x + dx, v + k3 * dx)
+
+        dv = (1 / 6) * dx * (k1 + 2 * k2 + 2 * k3 + k4)
+
+        x += dx
+        
+        v += dv
+        t += dt
+        count += 1
+        if N < 0:
+            fail = -1
+            
+    if fail != -1:        
+        RESULT.append([t, a, b, c, d, x-dx])
+
+
+print(len(RESULT))
+
+for _ in RESULT:
+    print(_)
+
+csvfile = open("data.csv", "w", newline="")
+csvwriter = csv.writer(csvfile)
+csvwriter.writerow(['t', 'a', 'b', 'c', 'd', 'x'])
+for row in RESULT:
+    csvwriter.writerow(row)
+csvfile.close()
+
+X = []
+Y = []
+for i in range(10):
+    a, b, c, d = RESULT[i][1], RESULT[i][2], RESULT[i][3], RESULT[i][4]
+
+
+    def f(x):
+        return a * x ** 5 + b * x ** 4 + c * x ** 3 + d * x ** 2
+
+
+    X.append(np.arange(-0, 0.15, 0.001))
+    Y.append(f(X[i]))
+
+    plt.plot(X[i], Y[i])
+plt.show()
