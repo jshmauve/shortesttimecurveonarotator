@@ -1,0 +1,57 @@
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import PolynomialFeatures
+import matplotlib.pyplot as plt
+import sympy as sp
+import numpy as np
+import csv
+
+def two(a, b, c, d):
+    return [a, b, c, d, a*a, a*b, a*c, a*d, b*b, b*c, b*d, c*c, c*d, d*d]
+
+df = pd.read_csv("data.csv")
+
+x = df[['a', 'b', 'c', 'd']]
+y = df[['t']]
+x_train, x_test, y_train, y_test = train_test_split(x, y, train_size=0.8, test_size=0.2) 
+
+poly_features = PolynomialFeatures(degree=2, include_bias=False)
+X_poly = poly_features.fit_transform(x_train)
+X_test = poly_features.fit_transform(x_test)
+lin_reg = LinearRegression()
+lin_reg.fit(X_poly,y_train)
+print(lin_reg.intercept_, lin_reg.coef_)
+COEF = lin_reg.coef_[0]
+print(poly_features.get_feature_names())
+y_predict = lin_reg.predict(X_test)
+plt.scatter(y_test, y_predict, alpha=0.4)
+plt.show()
+realy=[]
+for y in y_test.values.tolist():
+    realy.append(y) 
+plt.plot(y_predict[:20], 'bo')
+plt.plot(realy[:20], 'ro')
+plt.show() 
+
+
+
+print("결정계수: ", lin_reg.score(X_poly, y_train))
+print(COEF)
+a, b, c, d = sp.symbols("a b c d")
+f = COEF[0]*a + COEF[1]*b + COEF[2]*c + COEF[3]*d + COEF[4]*a*a + COEF[5]*a*b + COEF[6]*a*c + COEF[7]*a*d + COEF[8]*b*b + COEF[9]*b*c + COEF[10]*b*d + COEF[11]*c*c + COEF[12]*c*d + COEF[13]*d*d +lin_reg.intercept_[0]
+print(f)
+
+def func(a, b, c, d):
+    return COEF[0]*a + COEF[1]*b + COEF[2]*c + COEF[3]*d + COEF[4]*a*a + COEF[5]*a*b + COEF[6]*a*c + COEF[7]*a*d + COEF[8]*b*b + COEF[9]*b*c + COEF[10]*b*d + COEF[11]*c*c + COEF[12]*c*d + COEF[13]*d*d +lin_reg.intercept_[0]
+
+
+T=[]
+for i in np.arange(-5, 5.05, 0.1):
+    print(i)
+    T.sort()
+    print(T[:10])
+    for j in np.arange(-5, 5.05, 0.1):
+        for k in np.arange(-5, 5.05, 0.1):
+            for l in np.arange(-5, 5.05, 0.1):
+                T.append([func(i, j, k, l), i, j, k, l])
